@@ -20,7 +20,7 @@ build:
 	$(DOCKER) build -t deep-learning-with-keras --build-arg python_version=3.5 -f $(DOCKER_FILE) .
 
 bash: build
-	$(DOCKER) run -it -v $(SRC):/src -v $(DATA):/data deep-learning-with-keras bash
+	$(DOCKER) run -p 8888:8888 -p 6006:6006 -it -v $(SRC):/src -v $(DATA):/data deep-learning-with-keras bash
 
 ipython: build
 	$(DOCKER) run -p 8888:8888 -p 6006:6006 -it -v $(SRC):/src -v $(DATA):/data deep-learning-with-keras ipython
@@ -37,10 +37,9 @@ build-gpu:
 	$(DOCKER_GPU) build -t deep-learning-with-keras-gpu --build-arg python_version=3.5 -f $(DOCKER_FILE_GPU) .
 
 bash-gpu: build-gpu
-	$(DOCKER_GPU) run -it -v $(SRC):/src -v $(DATA):/data --env CUDA_HOME=${CUDA} \
+	$(DOCKER_GPU) run -p 8888:8888 -p 6006:6006 -it -v $(SRC):/src -v $(DATA):/data --env CUDA_HOME=${CUDA} \
 	                                                  --env LD_LIBRARY_PATH=${LD_LIBRARY} \
 	                                                  deep-learning-with-keras-gpu bash
-
 ipython-gpu: build-gpu
 	$(DOCKER_GPU) run -p 8888:8888 -p 6006:6006  -it -v $(SRC):/src -v $(DATA):/data --env CUDA_HOME=${CUDA} \
 	                                                  --env LD_LIBRARY_PATH=${LD_LIBRARY} \
@@ -62,9 +61,9 @@ build-wavenet:
 	$(DOCKER_GPU) build -t deep-learning-with-keras-wavenet --build-arg python_version=3.5 -f $(DOCKER_FILE_WAVNET) .
 
 bash-wavenet: build-wavenet
-	$(DOCKER_GPU) run -it -v $(SRC):/src --env CUDA_HOME=${CUDA} \
-	                                     --env LD_LIBRARY_PATH=${LD_LIBRARY} \
-	                                     deep-learning-with-keras-wavenet bash
+	$(DOCKER_GPU) run -p 8888:8888 -p 6006:6006 -it -v $(SRC):/src --env CUDA_HOME=${CUDA} \
+	                                                --env LD_LIBRARY_PATH=${LD_LIBRARY} \
+	                                                deep-learning-with-keras-wavenet bash
 
 ipython-wavenet: build-wavenet
 	$(DOCKER_GPU) run -p 8888:8888 -p 6006:6006 -it -v $(SRC):/src --env CUDA_HOME=${CUDA} \
