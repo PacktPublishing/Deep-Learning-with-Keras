@@ -61,7 +61,7 @@ build-wavenet:
 	$(DOCKER_GPU) build -t deep-learning-with-keras-wavenet --build-arg python_version=3.5 -f $(DOCKER_FILE_WAVNET) .
 
 bash-wavenet: build-wavenet
-	$(DOCKER_GPU) run -p 8888:8888 -p 6006:6006 -it -v $(SRC):/src --env CUDA_HOME=${CUDA} \
+	$(DOCKER_GPU) run -it -v $(SRC):/src --env CUDA_HOME=${CUDA} \
 	                                                --env LD_LIBRARY_PATH=${LD_LIBRARY} \
 	                                                deep-learning-with-keras-wavenet bash
 
