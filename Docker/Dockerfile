@@ -45,7 +45,7 @@ RUN useradd -m -s /bin/bash -N -u $NB_UID $NB_USER && \
 RUN conda update -y python
 RUN pip install numpy six tensorflow==1.3.0 keras==2.0.8 prettytensor && \
     pip install Cython ipdb pytest pytest-cov python-coveralls coverage==3.7.1 pytest-xdist pep8 pytest-pep8 pydot_ng && \
-    conda install Pillow scikit-learn notebook pandas matplotlib seaborn pyyaml h5py && \
+    conda install Pillow scikit-learn notebook pandas matplotlib seaborn pyyaml h5py gensim nltk && \
     conda install -y pyqt && \
     conda clean -yt
 
