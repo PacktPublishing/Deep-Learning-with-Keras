@@ -4,14 +4,16 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.utils import np_utils
 from sklearn.model_selection import train_test_split
 import collections
-import matplotlib.pyplot as plt
 import nltk
 import numpy as np
+from make_tensorboard import make_tensorboard
+import os
+import codecs
 
 np.random.seed(42)
 
-INPUT_FILE = "../data/umich-sentiment-train.txt"
-GLOVE_MODEL = "../data/glove.6B.100d.txt"
+INPUT_FILE = "data/umich-sentiment-train.txt"
+GLOVE_MODEL = "data/glove.6B.100d.txt"
 VOCAB_SIZE = 5000
 EMBED_SIZE = 100
 BATCH_SIZE = 64
@@ -19,7 +21,7 @@ NUM_EPOCHS = 10
 
 print("reading data...")
 counter = collections.Counter()
-fin = open(INPUT_FILE, "rb")
+fin = codecs.open(INPUT_FILE, "r", encoding='utf-8')
 maxlen = 0
 for line in fin:
     _, sent = line.strip().split("\t")
@@ -40,7 +42,7 @@ index2word[0] = "_UNK_"
 
 print("creating word sequences...")
 ws, ys = [], []
-fin = open(INPUT_FILE, "rb")
+fin = codecs.open(INPUT_FILE, "r", encoding='utf-8')
 for line in fin:
     label, sent = line.strip().split("\t")
     ys.append(int(label))
@@ -82,27 +84,13 @@ model.add(Dense(2, activation="softmax"))
 
 model.compile(optimizer="adam", loss="categorical_crossentropy",
               metrics=["accuracy"])
+
+callbacks, log_dir = make_tensorboard(set_dir_name='keras_transfer_glove_embeddings')
 history = model.fit(Xtrain, Ytrain, batch_size=BATCH_SIZE,
                     epochs=NUM_EPOCHS,
+                    callbacks=[callbacks],
                     validation_data=(Xtest, Ytest))
-
-# plot loss function
-plt.subplot(211)
-plt.title("accuracy")
-plt.plot(history.history["acc"], color="r", label="train")
-plt.plot(history.history["val_acc"], color="b", label="validation")
-plt.legend(loc="best")
-
-plt.subplot(212)
-plt.title("loss")
-plt.plot(history.history["loss"], color="r", label="train")
-plt.plot(history.history["val_loss"], color="b", label="validation")
-plt.legend(loc="best")
-
-plt.tight_layout()
-plt.show()
 
 # evaluate model
 score = model.evaluate(Xtest, Ytest, verbose=1)
 print("Test score: {:.3f}, accuracy: {:.3f}".format(score[0], score[1]))
-                    
