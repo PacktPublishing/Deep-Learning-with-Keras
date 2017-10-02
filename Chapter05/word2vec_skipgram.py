@@ -57,9 +57,9 @@ model.add(Dropout(0.5))
 model.add(Dense(Ytrain.shape[1]))
 model.add(Activation("softmax"))
 
-model.compile(optimizer="rmsprop", loss="categorical_crossentropy", 
+model.compile(optimizer="rmsprop", loss="categorical_crossentropy",
               metrics=["accuracy"])
-history = model.fit(Xtrain, Ytrain, batch_size=BATCH_SIZE, 
+history = model.fit(Xtrain, Ytrain, batch_size=BATCH_SIZE,
                     epochs=NUM_EPOCHS, verbose=1,
                     validation_data=(Xtest, Ytest))
 
@@ -85,14 +85,14 @@ print("Test score: {:.3f}, accuracy: {:.3f}".format(score[0], score[1]))
 
 # using the word2vec model
 word2idx = tokenizer.word_index
-idx2word = {v:k for k, v in word2idx.items()}
+idx2word = {v: k for k, v in word2idx.items()}
 
 # retrieve the weights from the first dense layer. This will convert
-# the input vector from a one-hot sum of two words to a dense 300 
+# the input vector from a one-hot sum of two words to a dense 300
 # dimensional representation
 W, b = model.layers[0].get_weights()
 
-idx2emb = {}    
+idx2emb = {}
 for word in word2idx.keys():
     wid = word2idx[word]
     vec_in = ohe.fit_transform(np.array(wid)).todense()
@@ -107,7 +107,7 @@ for word in ["stupid", "alice", "succeeded"]:
         if i == wid:
             continue
         target_emb = idx2emb[i]
-        distances.append(((wid, i), 
+        distances.append(((wid, i),
                          cosine_distances(source_emb, target_emb)))
     sorted_distances = sorted(distances, key=operator.itemgetter(1))[0:10]
     predictions = [idx2word[x[0][1]] for x in sorted_distances]

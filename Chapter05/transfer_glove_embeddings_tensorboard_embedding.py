@@ -7,7 +7,6 @@ import collections
 import nltk
 import numpy as np
 from make_tensorboard import make_tensorboard
-import os
 import codecs
 
 np.random.seed(42)
@@ -37,7 +36,7 @@ word2index = collections.defaultdict(int)
 for wid, word in enumerate(counter.most_common(VOCAB_SIZE)):
     word2index[word[0]] = wid + 1
 vocab_sz = len(word2index) + 1
-index2word = {v:k for k, v in word2index.items()}
+index2word = {v: k for k, v in word2index.items()}
 index2word[0] = "_UNK_"
 
 print("creating word sequences...")
@@ -62,7 +61,7 @@ for line in fglove:
     word = cols[0]
     embedding = np.array(cols[1:], dtype="float32")
     word2emb[word] = embedding
-fglove.close()    
+fglove.close()
 
 print("transferring embeddings...")
 X = np.zeros((W.shape[0], EMBED_SIZE))
@@ -72,9 +71,9 @@ for i in range(W.shape[0]):
     for j in range(maxlen):
         E[:, j] = word2emb[words[j]]
     X[i, :] = np.sum(E, axis=1)
-   
-Xtrain, Xtest, Ytrain, Ytest = train_test_split(X, Y, test_size=0.3, 
-                                                random_state=42)
+
+Xtrain, Xtest, Ytrain, Ytest = \
+    train_test_split(X, Y, test_size=0.3, random_state=42)
 print(Xtrain.shape, Xtest.shape, Ytrain.shape, Ytest.shape)
 
 model = Sequential()
@@ -85,12 +84,14 @@ model.add(Dense(2, activation="softmax"))
 model.compile(optimizer="adam", loss="categorical_crossentropy",
               metrics=["accuracy"])
 
-callbacks, log_dir = make_tensorboard(set_dir_name='keras_transfer_glove_embeddings',
-                                      embeddings_layer_names='dense_1',
-                                      )
+tensorboard, log_dir = make_tensorboard(
+    set_dir_name='keras_transfer_glove_embeddings',
+    embeddings_freq=1,
+    embeddings_layer_names='dense_1',
+    )
 history = model.fit(Xtrain, Ytrain, batch_size=BATCH_SIZE,
                     epochs=NUM_EPOCHS,
-                    callbacks=[callbacks],
+                    callbacks=[tensorboard],
                     validation_data=(Xtest, Ytest))
 
 # evaluate model

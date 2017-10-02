@@ -4,7 +4,6 @@ from keras.layers import Merge
 from keras.layers.core import Dense, Reshape
 from keras.layers.embeddings import Embedding
 from keras.models import Sequential
-import keras.backend as K
 
 vocab_size = 5000
 embed_size = 300
