@@ -3,6 +3,8 @@ from __future__ import division, print_function
 from keras import backend as K
 from keras.applications import vgg16
 from keras.layers import Input
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -38,7 +40,7 @@ def deprocess(img4d):
 
 ########################### main ###########################
 
-DATA_DIR = "../data"
+DATA_DIR = "data"
 
 IMAGE_FILE = os.path.join(DATA_DIR, "cat.jpg")
 
@@ -52,6 +54,7 @@ d_img = deprocess(p_img)
 print("After deprocess:", d_img.shape)
 plt.imshow(d_img)
 plt.show()
+plt.savefig('cat_image.png')
 
 # load pretrained VGG-16
 batch_shape = p_img.shape
@@ -80,6 +83,7 @@ for i in range(num_pool_layers):
 
 plt.tight_layout()
 plt.show()
+plt.savefig('cat_model_process.png')
 
 # deep dreaming
 first_layer = model.layers[-1]
@@ -108,12 +112,15 @@ for i in range(num_pool_layers):
         img_value += grads_value * step 
         axes[it].imshow(deprocess(img_value))
     plt.show()
+    cat_process_image = "cat_vgg_16_" + layer_name + ".png"
+    plt.savefig(cat_process_image)
 
 # try to dream structure out of random noise
 img_noise = np.random.randint(100, 150, size=(227, 227, 3), dtype=np.uint8)
 print(img_noise.shape)
 plt.imshow(img_noise)
 plt.show()
+plt.savefig('noise.png')
 
 num_pool_layers = 5
 num_iters_per_layer = 3
@@ -138,7 +145,9 @@ for i in range(num_pool_layers):
         img_value += grads_value * step 
         axes[it].imshow(deprocess(img_value))
     plt.show()
-    
+    noise_process_image = "noise_vgg_16_" + layer_name + ".png"
+    plt.savefig(noise_process_image)
+
 # random noise with specific objective. Only do gradient ascent on
 # specific label and see that this pattern shows up
 num_pool_layers = 5
@@ -163,5 +172,7 @@ for i in range(num_pool_layers):
         img_value += grads_value * step 
         axes[it].imshow(deprocess(img_value))
     plt.show()
-    
+    noise_process_image = "noise_specific_vgg_16_" + layer_name + ".png"
+    plt.savefig(noise_process_image)
+
     
