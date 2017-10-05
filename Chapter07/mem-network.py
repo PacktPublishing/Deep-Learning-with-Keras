@@ -12,8 +12,12 @@ import collections
 import itertools
 import nltk
 import numpy as np
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 import os
+from make_tensorboard import make_tensorboard
+
 
 def get_data(infile):
     stories, questions, answers = [], [], []
@@ -84,7 +88,7 @@ def vectorize(data, word2idx, story_maxlen, question_maxlen):
            np_utils.to_categorical(Y, num_classes=len(word2idx))
 
 
-DATA_DIR = "../data"
+DATA_DIR = "data/tasks_1-20_v1-2/en"
 
 TRAIN_FILE = os.path.join(DATA_DIR, "qa1_single-supporting-fact_train.txt")
 TEST_FILE = os.path.join(DATA_DIR, "qa1_single-supporting-fact_test.txt")
@@ -114,8 +118,8 @@ print(Xstrain.shape, Xqtrain.shape, Ytrain.shape, Xstest.shape, Xqtest.shape, Yt
 # define network
 EMBEDDING_SIZE = 64
 LATENT_SIZE = 32
-BATCH_SIZE = 64
-NUM_EPOCHS = 10
+BATCH_SIZE = 32
+NUM_EPOCHS = 400
 
 # inputs
 story_input = Input(shape=(story_maxlen,))
@@ -157,9 +161,12 @@ model = Model(inputs=[story_input, question_input], outputs=output)
 model.compile(optimizer="rmsprop", loss="categorical_crossentropy",
               metrics=["accuracy"])
 
+tensorboard = make_tensorboard(set_dir_name='mem-network')
+
 # train model
 history = model.fit([Xstrain, Xqtrain], [Ytrain], batch_size=BATCH_SIZE, 
                     epochs=NUM_EPOCHS,
+                    callbacks=[tensorboard],
                     validation_data=([Xstest, Xqtest], [Ytest]))
                     
 # plot accuracy and loss plot
