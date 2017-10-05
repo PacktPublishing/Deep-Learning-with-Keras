@@ -4,18 +4,20 @@ from keras.layers import Input
 from keras.layers.core import Dense
 from keras.models import Model
 from sklearn.preprocessing import StandardScaler
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pandas as pd
 
-DATA_DIR = "../data"
+DATA_DIR = "data"
 
 AIRQUALITY_FILE = os.path.join(DATA_DIR, "AirQualityUCI.csv")
 
 aqdf = pd.read_csv(AIRQUALITY_FILE, sep=";", decimal=",", header=0)
 # remove first and last 2 cols 
-del aqdf["#Date"]
+del aqdf["Date"]
 del aqdf["Time"]
 del aqdf["Unnamed: 15"]
 del aqdf["Unnamed: 16"]
@@ -50,7 +52,7 @@ model = Model(inputs=[readings], outputs=[benzene])
 model.compile(loss="mse", optimizer="adam")
 
 # train network
-NUM_EPOCHS = 20
+NUM_EPOCHS = 1
 BATCH_SIZE = 10
 
 history = model.fit(Xtrain, ytrain, batch_size=BATCH_SIZE, epochs=NUM_EPOCHS,
@@ -72,3 +74,4 @@ plt.xlabel("time")
 plt.ylabel("C6H6 concentrations")
 plt.legend(loc="best")
 plt.show()
+plt.savefig('AirQualityRegression.png')
