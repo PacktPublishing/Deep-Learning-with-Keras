@@ -48,13 +48,17 @@ img = plt.imread(IMAGE_FILE)
 plt.imshow(img)
 img_copy = img.copy()
 print("Original image shape:", img.shape)
+image_shape_widh = img.shape[0]
+image_shape_height = img.shape[1]
 p_img = preprocess(img_copy)
 print("After preprocess:", p_img.shape)
 d_img = deprocess(p_img)
 print("After deprocess:", d_img.shape)
 plt.imshow(d_img)
 plt.show()
-plt.savefig('cat_image.png')
+IMAGE_DIR = "images"
+SAVE_IMAGE_FILE = os.path.join(IMAGE_DIR, "cat_image.jpg")
+plt.savefig(SAVE_IMAGE_FILE)
 
 # load pretrained VGG-16
 batch_shape = p_img.shape
@@ -83,7 +87,9 @@ for i in range(num_pool_layers):
 
 plt.tight_layout()
 plt.show()
-plt.savefig('cat_model_process.png')
+IMAGE_DIR = "images"
+SAVE_IMAGE_FILE = os.path.join(IMAGE_DIR, "cat_model_process.jpg")
+plt.savefig(SAVE_IMAGE_FILE)
 
 # deep dreaming
 first_layer = model.layers[-1]
@@ -92,7 +98,7 @@ print(first_layer.name, first_layer.output_shape)
 
 num_pool_layers = 5
 num_iters_per_layer = 3
-step = 100
+step = 2000
 
 for i in range(num_pool_layers):
     layer_name = "block{:d}_pool".format(i+1)
@@ -109,22 +115,27 @@ for i in range(num_pool_layers):
     fig, axes = plt.subplots(1, num_iters_per_layer, figsize=(20, 10))
     for it in range(num_iters_per_layer):
         loss_value, grads_value = f([img_value])
-        img_value += grads_value * step 
+        img_value += grads_value * step
         axes[it].imshow(deprocess(img_value))
     plt.show()
+    IMAGE_DIR = "images"
     cat_process_image = "cat_vgg_16_" + layer_name + ".png"
-    plt.savefig(cat_process_image)
+    SAVE_IMAGE_FILE = os.path.join(IMAGE_DIR, cat_process_image)
+    plt.savefig(SAVE_IMAGE_FILE)
 
 # try to dream structure out of random noise
-img_noise = np.random.randint(100, 150, size=(227, 227, 3), dtype=np.uint8)
+img_noise = np.random.randint(100, 150, size=(image_shape_widh, image_shape_height, 3), dtype=np.uint8)
 print(img_noise.shape)
 plt.imshow(img_noise)
 plt.show()
 plt.savefig('noise.png')
 
+p_img = img_noise.copy()
+p_img = preprocess(p_img)
+
 num_pool_layers = 5
 num_iters_per_layer = 3
-step = 100
+step = 2000
 
 for i in range(num_pool_layers):
     layer_name = "block{:d}_pool".format(i+1)
@@ -145,14 +156,16 @@ for i in range(num_pool_layers):
         img_value += grads_value * step 
         axes[it].imshow(deprocess(img_value))
     plt.show()
+    IMAGE_DIR = "images"
     noise_process_image = "noise_vgg_16_" + layer_name + ".png"
-    plt.savefig(noise_process_image)
+    SAVE_IMAGE_FILE = os.path.join(IMAGE_DIR, noise_process_image)
+    plt.savefig(SAVE_IMAGE_FILE)
 
 # random noise with specific objective. Only do gradient ascent on
 # specific label and see that this pattern shows up
 num_pool_layers = 5
 num_iters_per_layer = 3
-step = 100
+step = 2000
 
 for i in range(num_pool_layers):
     layer_name = "block{:d}_pool".format(i+1)
@@ -172,7 +185,8 @@ for i in range(num_pool_layers):
         img_value += grads_value * step 
         axes[it].imshow(deprocess(img_value))
     plt.show()
+    IMAGE_DIR = "images"
     noise_process_image = "noise_specific_vgg_16_" + layer_name + ".png"
-    plt.savefig(noise_process_image)
+    SAVE_IMAGE_FILE = os.path.join(IMAGE_DIR, noise_process_image)
+    plt.savefig(SAVE_IMAGE_FILE)
 
-    
