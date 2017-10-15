@@ -136,11 +136,13 @@ def example_gan(adversarial_optimizer, path, opt_g, opt_d, nb_epoch, generator, 
     xtrain, xtest = cifar10_data()
     y = targets(xtrain.shape[0])
     ytest = targets(xtest.shape[0])
+    ytest = targets(100)
     callbacks = [generator_cb]
     if K.backend() == "tensorflow":
         callbacks.append(
             TensorBoard(log_dir=os.path.join(path, 'logs'), histogram_freq=0, write_graph=True, write_images=True))
-    history = model.fit(x=xtrain, y=y, validation_data=(xtest, ytest),
+    # history = model.fit(x=xtrain, y=y, validation_data=(xtest, ytest),
+    history = model.fit(x=xtest[:100], y=ytest,
                         callbacks=callbacks, epochs=nb_epoch,
                         batch_size=32)
 
@@ -150,7 +152,8 @@ def example_gan(adversarial_optimizer, path, opt_g, opt_d, nb_epoch, generator, 
 
     # save models
     generator.save(os.path.join(path, "generator.h5"))
-    discriminator.save(os.path.join(path, "discriminator.h5"))
+    d_d.save(os.path.join(path, "discriminator.h5"))
+    d_g.save(os.path.join(path, "discriminator_generator.h5"))
 
 
 def main():
@@ -164,7 +167,7 @@ def main():
     example_gan(AdversarialOptimizerSimultaneous(), "output/gan-cifar10",
                 opt_g=Adam(1e-4, decay=1e-5),
                 opt_d=Adam(1e-3, decay=1e-5),
-                nb_epoch=100, generator=generator, discriminator=discriminator,
+                nb_epoch=1, generator=generator, discriminator=discriminator,
                 latent_dim=latent_dim)
 
 
