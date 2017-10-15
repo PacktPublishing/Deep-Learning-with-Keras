@@ -9,6 +9,8 @@ from keras.layers.wrappers import Bidirectional
 from keras.models import Model
 from keras.preprocessing import sequence
 import collections
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 from make_tensorboard import make_tensorboard
 import nltk
@@ -170,3 +172,4 @@ for bid in range(num_test_steps):
 plt.hist(cosims, bins=10, normed=True)
 plt.xlabel("cosine similarity")
 plt.ylabel("frequency")
+plt.savefig('cosine_similarity.png')

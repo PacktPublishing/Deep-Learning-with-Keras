@@ -52,7 +52,7 @@ model = Model(inputs=[readings], outputs=[benzene])
 model.compile(loss="mse", optimizer="adam")
 
 # train network
-NUM_EPOCHS = 1
+NUM_EPOCHS = 20
 BATCH_SIZE = 10
 
 history = model.fit(Xtrain, ytrain, batch_size=BATCH_SIZE, epochs=NUM_EPOCHS,

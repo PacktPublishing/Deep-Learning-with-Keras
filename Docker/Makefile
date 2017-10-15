@@ -20,7 +20,7 @@ build:
 	$(DOCKER) build -t deep-learning-with-keras --build-arg python_version=3.5 -f $(DOCKER_FILE) .
 
 bash: build
-	$(DOCKER) run -p 8888:8888 -p 6006:6006 -it -v $(SRC):/src -v $(DATA):/data deep-learning-with-keras bash
+	$(DOCKER) run -p 8889:8889 -p 6007:6007 -it -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v $(SRC):/src -v $(DATA):/data deep-learning-with-keras bash
 
 ipython: build
 	$(DOCKER) run -p 8888:8888 -p 6006:6006 -it -v $(SRC):/src -v $(DATA):/data deep-learning-with-keras ipython
@@ -38,6 +38,8 @@ build-gpu:
 
 bash-gpu: build-gpu
 	$(DOCKER_GPU) run -p 8888:8888 -p 6006:6006 -it -v $(SRC):/src -v $(DATA):/data --env CUDA_HOME=${CUDA} \
+	                                                  -e DISPLAY=$DISPLAY \
+	                                                  -v /tmp/.X11-unix:/tmp/.X11-unix \
 	                                                  --env LD_LIBRARY_PATH=${LD_LIBRARY} \
 	                                                  deep-learning-with-keras-gpu bash
 ipython-gpu: build-gpu
