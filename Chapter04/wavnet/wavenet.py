@@ -336,7 +336,7 @@ def predict(desired_sample_rate, fragment_length, _log, seed, _seed, _config, pr
 
     # write_samples(sample_stream, outputs)
     warned_repetition = False
-    for i in tqdm(xrange(int(desired_sample_rate * predict_seconds))):
+    for i in tqdm(range(int(desired_sample_rate * predict_seconds))):
         if not warned_repetition:
             if np.argmax(outputs[-1]) == np.argmax(outputs[-2]) and np.argmax(outputs[-2]) == np.argmax(outputs[-3]):
                 warned_repetition = True
