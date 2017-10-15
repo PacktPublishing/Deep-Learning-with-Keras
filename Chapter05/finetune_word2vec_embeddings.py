@@ -24,7 +24,7 @@ EMBED_SIZE = 300
 NUM_FILTERS = 256
 NUM_WORDS = 3
 BATCH_SIZE = 64
-NUM_EPOCHS = 20
+NUM_EPOCHS = 10
 
 counter = collections.Counter()
 fin = codecs.open(INPUT_FILE, "r", encoding='utf-8')
