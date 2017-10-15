@@ -58,7 +58,7 @@ word2emb = collections.defaultdict(int)
 fglove = open(GLOVE_MODEL, "rb")
 for line in fglove:
     cols = line.strip().split()
-    word = cols[0]
+    word = cols[0].decode('utf-8')
     embedding = np.array(cols[1:], dtype="float32")
     word2emb[word] = embedding
 fglove.close()
