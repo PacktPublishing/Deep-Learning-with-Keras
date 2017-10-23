@@ -178,22 +178,6 @@ history = model.fit([Xstrain, Xqtrain], [Ytrain], batch_size=BATCH_SIZE,
                     callbacks=[tensorboard],
                     validation_data=([Xstest, Xqtest], [Ytest]))
 
-# plot accuracy and loss plot
-plt.subplot(211)
-plt.title("Accuracy")
-plt.plot(history.history["acc"], color="g", label="train")
-plt.plot(history.history["val_acc"], color="b", label="validation")
-plt.legend(loc="best")
-
-plt.subplot(212)
-plt.title("Loss")
-plt.plot(history.history["loss"], color="g", label="train")
-plt.plot(history.history["val_loss"], color="b", label="validation")
-plt.legend(loc="best")
-
-plt.tight_layout()
-plt.show()
-
 # labels
 ytest = np.argmax(Ytest, axis=1)
 
