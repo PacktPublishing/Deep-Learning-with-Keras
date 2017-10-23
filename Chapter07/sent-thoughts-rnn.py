@@ -138,16 +138,8 @@ history = autoencoder.fit_generator(train_gen,
                                     validation_steps=num_test_steps,
                                     callbacks=[checkpoint, tensorboard])
 
-# plot results
-plt.plot(history.history["loss"], color="g", label="train")
-plt.plot(history.history["val_loss"], color="b", label="validation")
-plt.ylabel("loss (MSE)")
-plt.xlabel("epochs")
-plt.legend(loc="best")
-plt.show()
-
 # collect autoencoder predictions for test set
-test_inputs, test_labels = test_gen.next()
+test_inputs, test_labels = next(test_gen)
 preds = autoencoder.predict(test_inputs)
 
 # extract encoder part from autoencoder
@@ -160,7 +152,7 @@ k = 500
 cosims = np.zeros((k))
 i = 0
 for bid in range(num_test_steps):
-    xtest, ytest = test_gen.next()
+    xtest, ytest = next(test_gen)
     ytest_ = autoencoder.predict(xtest)
     Xvec = encoder.predict(xtest)
     Yvec = encoder.predict(ytest_)
@@ -178,3 +170,4 @@ plt.hist(cosims, bins=10, normed=True)
 plt.xlabel("cosine similarity")
 plt.ylabel("frequency")
 plt.savefig('cosine_similarity.png')
+plt.show()
