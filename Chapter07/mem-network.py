@@ -12,11 +12,8 @@ import collections
 import itertools
 import nltk
 import numpy as np
-import matplotlib as mpl
 import os
 from make_tensorboard import make_tensorboard
-mpl.use('Agg')
-import matplotlib.pyplot as plt  # noqa
 
 
 def get_data(infile):

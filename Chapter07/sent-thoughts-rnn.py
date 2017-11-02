@@ -13,9 +13,7 @@ from make_tensorboard import make_tensorboard
 import nltk
 import numpy as np
 import os
-import matplotlib as mpl
-mpl.use('Agg')
-import matplotlib.pyplot as plt  # noqa
+import matplotlib.pyplot as plt
 
 
 def lookup_word2id(word):
@@ -169,5 +167,4 @@ for bid in range(num_test_steps):
 plt.hist(cosims, bins=10, normed=True)
 plt.xlabel("cosine similarity")
 plt.ylabel("frequency")
-plt.savefig('cosine_similarity.png')
 plt.show()

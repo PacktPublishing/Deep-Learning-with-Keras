@@ -4,12 +4,10 @@ from keras.layers import Input
 from keras.layers.core import Dense
 from keras.models import Model
 from sklearn.preprocessing import StandardScaler
-import matplotlib as mpl
 import numpy as np
 import os
 import pandas as pd
-mpl.use('Agg')
-import matplotlib.pyplot as plt  # noqa
+import matplotlib.pyplot as plt
 
 DATA_DIR = "data"
 
@@ -76,4 +74,3 @@ plt.xlabel("time")
 plt.ylabel("C6H6 concentrations")
 plt.legend(loc="best")
 plt.show()
-plt.savefig('AirQualityRegression.png')

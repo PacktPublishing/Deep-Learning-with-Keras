@@ -3,10 +3,8 @@ from __future__ import division, print_function
 from keras.applications import vgg16
 from keras import backend as K
 from scipy.misc import imresize
-import matplotlib as mpl
 import numpy as np
 import os
-mpl.use('Agg')
 import matplotlib.pyplot as plt  # noqa
 
 
@@ -105,16 +103,10 @@ style_img_value = imresize(plt.imread(STYLE_IMAGE_FILE),
 plt.subplot(121)
 plt.title("content")
 plt.imshow(content_img_value)
-IMAGE_DIR = "images"
-SAVE_IMAGE_FILE = os.path.join(IMAGE_DIR, "content.png")
-plt.savefig(SAVE_IMAGE_FILE)
 
 plt.subplot(122)
 plt.title("style")
 plt.imshow(style_img_value)
-IMAGE_DIR = "images"
-SAVE_IMAGE_FILE = os.path.join(IMAGE_DIR, "style_content.png")
-plt.savefig(SAVE_IMAGE_FILE)
 
 plt.show()
 
@@ -163,7 +155,3 @@ for i in range(NUM_ITERATIONS):
     content_img4d += grads_value * LEARNING_RATE
     plt.imshow(deprocess(content_img4d))
     plt.show()
-    style_transfer_image = "style_transfer_" + str(i) + ".png"
-    IMAGE_DIR = "images"
-    SAVE_IMAGE_FILE = os.path.join(IMAGE_DIR, style_transfer_image)
-    plt.savefig(SAVE_IMAGE_FILE)

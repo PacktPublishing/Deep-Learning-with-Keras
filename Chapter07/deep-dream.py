@@ -3,11 +3,9 @@ from __future__ import division, print_function
 from keras import backend as K
 from keras.applications import vgg16
 from keras.layers import Input
-import matplotlib as mpl
 import numpy as np
 import os
-mpl.use('Agg')
-import matplotlib.pyplot as plt  # noqa
+import matplotlib.pyplot as plt
 
 
 def preprocess(img):
@@ -58,9 +56,6 @@ d_img = deprocess(p_img)
 print("After deprocess:", d_img.shape)
 plt.imshow(d_img)
 plt.show()
-IMAGE_DIR = "images"
-SAVE_IMAGE_FILE = os.path.join(IMAGE_DIR, "cat_image.jpg")
-plt.savefig(SAVE_IMAGE_FILE)
 
 # load pretrained VGG-16
 batch_shape = p_img.shape
@@ -90,9 +85,6 @@ for i in range(num_pool_layers):
 
 plt.tight_layout()
 plt.show()
-IMAGE_DIR = "images"
-SAVE_IMAGE_FILE = os.path.join(IMAGE_DIR, "cat_model_process.jpg")
-plt.savefig(SAVE_IMAGE_FILE)
 
 # deep dreaming
 first_layer = model.layers[-1]
@@ -121,10 +113,6 @@ for i in range(num_pool_layers):
         img_value += grads_value * step
         axes[it].imshow(deprocess(img_value))
     plt.show()
-    IMAGE_DIR = "images"
-    cat_process_image = "cat_vgg_16_" + layer_name + ".png"
-    SAVE_IMAGE_FILE = os.path.join(IMAGE_DIR, cat_process_image)
-    plt.savefig(SAVE_IMAGE_FILE)
 
 # try to dream structure out of random noise
 img_noise = np.random.randint(100, 150,
@@ -133,7 +121,6 @@ img_noise = np.random.randint(100, 150,
 print(img_noise.shape)
 plt.imshow(img_noise)
 plt.show()
-plt.savefig('noise.png')
 
 p_img = img_noise.copy()
 p_img = preprocess(p_img)
@@ -161,10 +148,6 @@ for i in range(num_pool_layers):
         img_value += grads_value * step
         axes[it].imshow(deprocess(img_value))
     plt.show()
-    IMAGE_DIR = "images"
-    noise_process_image = "noise_vgg_16_" + layer_name + ".png"
-    SAVE_IMAGE_FILE = os.path.join(IMAGE_DIR, noise_process_image)
-    plt.savefig(SAVE_IMAGE_FILE)
 
 # random noise with specific objective. Only do gradient ascent on
 # specific label and see that this pattern shows up
@@ -190,7 +173,3 @@ for i in range(num_pool_layers):
         img_value += grads_value * step
         axes[it].imshow(deprocess(img_value))
     plt.show()
-    IMAGE_DIR = "images"
-    noise_process_image = "noise_specific_vgg_16_" + layer_name + ".png"
-    SAVE_IMAGE_FILE = os.path.join(IMAGE_DIR, noise_process_image)
-    plt.savefig(SAVE_IMAGE_FILE)
