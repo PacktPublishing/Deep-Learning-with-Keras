@@ -1,5 +1,5 @@
 """
-Utility functions to avoid warnings while testing both Keras 1 and 2.
+Utility functions to avoid warnings while testing both Keras 1 and 2 .
 """
 import keras
 
