@@ -4,7 +4,7 @@ from keras.layers import Reshape
 from keras.layers.core import Activation
 from keras.layers.normalization import BatchNormalization
 from keras.layers.convolutional import UpSampling2D
-from keras.layers.convolutional import Convolution2D, MaxPooling2D
+from keras.layers.convolutional import Conv2D, MaxPooling2D
 from keras.layers.core import Flatten
 from keras.optimizers import SGD
 from keras.datasets import mnist
@@ -16,37 +16,40 @@ import math
 
 def generator_model():
     model = Sequential()
-    model.add(Dense(input_dim=100, output_dim=1024))
-    model.add(Activation('tanh'))
-    model.add(Dense(128*7*7))
+    model.add(Dense(1024, input_shape=(100, ), activation='tanh'))
+    model.add(Dense(128 * 7 * 7))
     model.add(BatchNormalization())
     model.add(Activation('tanh'))
-    model.add(Reshape((128, 7, 7), input_shape=(128*7*7,)))
+    model.add(Reshape((7, 7, 128), input_shape=(7 * 7 * 128,)))
     model.add(UpSampling2D(size=(2, 2)))
-    model.add(Convolution2D(64, 5, 5, border_mode='same'))
-    model.add(Activation('tanh'))
+    model.add(Conv2D(64, (5, 5),
+                     padding='same',
+                     activation='tanh',
+                     data_format='channels_last'))
     model.add(UpSampling2D(size=(2, 2)))
-    model.add(Convolution2D(1, 5, 5, border_mode='same'))
-    model.add(Activation('tanh'))
+    model.add(Conv2D(1, (5, 5),
+                     padding='same',
+                     activation='tanh',
+                     data_format='channels_last'))
     return model
 
 
 def discriminator_model():
     model = Sequential()
-    model.add(Convolution2D(
-                        64, 5, 5,
-                        border_mode='same',
-                        input_shape=(1, 28, 28)))
-    model.add(Activation('tanh'))
+    model.add(Conv2D(64, (5, 5),
+                    padding='same',
+                    input_shape=(28, 28, 1),
+                    activation='tanh',
+                    data_format='channels_last'
+    ))
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Convolution2D(128, 5, 5))
-    model.add(Activation('tanh'))
+    model.add(Conv2D(128, (5, 5),
+                    activation='tanh',
+                    data_format='channels_last'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Flatten())
-    model.add(Dense(1024))
-    model.add(Activation('tanh'))
-    model.add(Dense(1))
-    model.add(Activation('sigmoid'))
+    model.add(Dense(1024, activation='tanh'))
+    model.add(Dense(1, activation='sigmoid'))
     return model
 
 
@@ -59,9 +62,13 @@ def generator_containing_discriminator(generator, discriminator):
 
 
 def combine_images(generated_images):
+    generated_images = generated_images.reshape(generated_images.shape[0],
+                                                generated_images.shape[3],
+                                                generated_images.shape[1],
+                                                generated_images.shape[2])
     num = generated_images.shape[0]
     width = int(math.sqrt(num))
-    height = int(math.ceil(float(num)/width))
+    height = int(math.ceil(float(num) / width))
     shape = generated_images.shape[2:]
     image = np.zeros((height*shape[0], width*shape[1]),
                      dtype=generated_images.dtype)
@@ -96,6 +103,10 @@ def train(BATCH_SIZE):
             for i in range(BATCH_SIZE):
                 noise[i, :] = np.random.uniform(-1, 1, 100)
             image_batch = X_train[index*BATCH_SIZE:(index+1)*BATCH_SIZE]
+            image_batch = image_batch.reshape(image_batch.shape[0],
+                                              image_batch.shape[2],
+                                              image_batch.shape[3],
+                                              image_batch.shape[1])
             generated_images = generator.predict(noise, verbose=0)
             if index % 20 == 0:
                 image = combine_images(generated_images)
