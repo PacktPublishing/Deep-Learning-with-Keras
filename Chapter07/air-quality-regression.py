@@ -15,7 +15,7 @@ AIRQUALITY_FILE = os.path.join(DATA_DIR, "AirQualityUCI.csv")
 
 aqdf = pd.read_csv(AIRQUALITY_FILE, sep=";", decimal=",", header=0)
 # remove first and last 2 cols 
-del aqdf["#Date"]
+del aqdf["Date"]
 del aqdf["Time"]
 del aqdf["Unnamed: 15"]
 del aqdf["Unnamed: 16"]
