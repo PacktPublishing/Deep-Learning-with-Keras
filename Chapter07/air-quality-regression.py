@@ -4,18 +4,18 @@ from keras.layers import Input
 from keras.layers.core import Dense
 from keras.models import Model
 from sklearn.preprocessing import StandardScaler
-import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pandas as pd
+import matplotlib.pyplot as plt
 
-DATA_DIR = "../data"
+DATA_DIR = "data"
 
 AIRQUALITY_FILE = os.path.join(DATA_DIR, "AirQualityUCI.csv")
 
 aqdf = pd.read_csv(AIRQUALITY_FILE, sep=";", decimal=",", header=0)
-# remove first and last 2 cols 
-del aqdf["#Date"]
+# remove first and last 2 cols
+del aqdf["Date"]
 del aqdf["Time"]
 del aqdf["Unnamed: 15"]
 del aqdf["Unnamed: 16"]
@@ -38,7 +38,8 @@ X = np.delete(Xscaled, 3, axis=1)
 print(X.shape, y.shape, Xmeans.shape, Xstds.shape)
 
 train_size = int(0.7 * X.shape[0])
-Xtrain, Xtest, ytrain, ytest = X[0:train_size], X[train_size:], y[0:train_size], y[train_size:]
+Xtrain, Xtest, ytrain, ytest = \
+    X[0:train_size], X[train_size:], y[0:train_size], y[train_size:]
 print(Xtrain.shape, Xtest.shape, ytrain.shape, ytest.shape)
 
 # define the network
@@ -54,19 +55,20 @@ NUM_EPOCHS = 20
 BATCH_SIZE = 10
 
 history = model.fit(Xtrain, ytrain, batch_size=BATCH_SIZE, epochs=NUM_EPOCHS,
-                   validation_split=0.2)
+                    validation_split=0.2)
 
 # show some predictions
 ytest_ = model.predict(Xtest).flatten()
 for i in range(10):
     label = (ytest[i] * Xstds[3]) + Xmeans[3]
     prediction = (ytest_[i] * Xstds[3]) + Xmeans[3]
-    print("Benzene Conc. expected: {:.3f}, predicted: {:.3f}".format(label, prediction))
-    
+    print("Benzene Conc. expected: {:.3f}, "
+          "predicted: {:.3f}".format(label, prediction))
+
 # plot all predictions
-plt.plot(np.arange(ytest.shape[0]), (ytest * Xstds[3]) / Xmeans[3], 
+plt.plot(np.arange(ytest.shape[0]), (ytest * Xstds[3]) / Xmeans[3],
          color="b", label="actual")
-plt.plot(np.arange(ytest_.shape[0]), (ytest_ * Xstds[3]) / Xmeans[3], 
+plt.plot(np.arange(ytest_.shape[0]), (ytest_ * Xstds[3]) / Xmeans[3],
          color="r", alpha=0.5, label="predicted")
 plt.xlabel("time")
 plt.ylabel("C6H6 concentrations")

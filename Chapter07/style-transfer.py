@@ -3,9 +3,10 @@ from __future__ import division, print_function
 from keras.applications import vgg16
 from keras import backend as K
 from scipy.misc import imresize
-import matplotlib.pyplot as plt
 import numpy as np
 import os
+import matplotlib.pyplot as plt  # noqa
+
 
 def preprocess(img):
     img4d = img.copy()
@@ -16,6 +17,7 @@ def preprocess(img):
     img4d = np.expand_dims(img4d, axis=0)
     img4d = vgg16.preprocess_input(img4d)
     return img4d
+
 
 def deprocess(img4d):
     img = img4d.copy()
@@ -35,8 +37,10 @@ def deprocess(img4d):
     img = np.clip(img, 0, 255).astype("uint8")
     return img
 
+
 def content_loss(content, comb):
     return K.sum(K.square(comb - content))
+
 
 def gram_matrix(x):
     if K.image_dim_ordering() == "th":
@@ -46,12 +50,14 @@ def gram_matrix(x):
     gram = K.dot(features, K.transpose(features))
     return gram
 
+
 def style_loss_per_layer(style, comb):
     S = gram_matrix(style)
     C = gram_matrix(comb)
     channels = 3
     size = RESIZED_WH * RESIZED_WH
     return K.sum(K.square(S - C)) / (4 * (channels ** 2) * (size ** 2))
+
 
 def style_loss():
     stl_loss = 0.0
@@ -63,27 +69,36 @@ def style_loss():
         stl_loss += style_loss_per_layer(style_features, comb_features)
     return stl_loss / NUM_LAYERS
 
+
 def variation_loss(comb):
     if K.image_dim_ordering() == "th":
-        dx = K.square(comb[:, :, :RESIZED_WH-1, :RESIZED_WH-1] - comb[:, :, 1:, :RESIZED_WH-1])
-        dy = K.square(comb[:, :, :RESIZED_WH-1, :RESIZED_WH-1] - comb[:, :, :RESIZED_WH-1, 1:])
+        dx = K.square(comb[:, :, :RESIZED_WH-1, :RESIZED_WH-1] -
+                      comb[:, :, 1:, :RESIZED_WH-1])
+        dy = K.square(comb[:, :, :RESIZED_WH-1, :RESIZED_WH-1] -
+                      comb[:, :, :RESIZED_WH-1, 1:])
     else:
-        dx = K.square(comb[:, :RESIZED_WH-1, :RESIZED_WH-1, :] - comb[:, 1:, :RESIZED_WH-1, :])
-        dy = K.square(comb[:, :RESIZED_WH-1, :RESIZED_WH-1, :] - comb[:, :RESIZED_WH-1, 1:, :])
+        dx = K.square(comb[:, :RESIZED_WH-1, :RESIZED_WH-1, :] -
+                      comb[:, 1:, :RESIZED_WH-1, :])
+        dy = K.square(comb[:, :RESIZED_WH-1, :RESIZED_WH-1, :] -
+                      comb[:, :RESIZED_WH-1, 1:, :])
     return K.sum(K.pow(dx + dy, 1.25))
 
-############################ main ############################
+# ########################### main ############################
 
-DATA_DIR = "../data"
+
+DATA_DIR = "data"
 
 CONTENT_IMAGE_FILE = os.path.join(DATA_DIR, "cat.jpg")
-STYLE_IMAGE_FILE = os.path.join(DATA_DIR, "JapaneseBridgeMonetCopy.jpg")
+STYLE_IMAGE_FILE = os.path.join(DATA_DIR, "JapaneseBridgeMomentCopy.jpg")
+
 
 RESIZED_WH = 400
 
 # verify that the content and style images are readable
-content_img_value = imresize(plt.imread(CONTENT_IMAGE_FILE), (RESIZED_WH, RESIZED_WH))
-style_img_value = imresize(plt.imread(STYLE_IMAGE_FILE), (RESIZED_WH, RESIZED_WH))
+content_img_value = imresize(plt.imread(CONTENT_IMAGE_FILE),
+                             (RESIZED_WH, RESIZED_WH))
+style_img_value = imresize(plt.imread(STYLE_IMAGE_FILE),
+                           (RESIZED_WH, RESIZED_WH))
 
 plt.subplot(121)
 plt.title("content")
@@ -109,9 +124,9 @@ input_tensor.get_shape()
 
 # download VGG16 model
 model = vgg16.VGG16(input_tensor=input_tensor,
-                   weights="imagenet", include_top=False)
+                    weights="imagenet", include_top=False)
 
-layer_dict = {layer.name : layer.output for layer in model.layers}
+layer_dict = {layer.name: layer.output for layer in model.layers}
 
 CONTENT_WEIGHT = 0.1
 STYLE_WEIGHT = 5.0
@@ -124,18 +139,19 @@ NUM_LAYERS = 5
 c_loss = content_loss(content_img, comb_img)
 s_loss = style_loss()
 v_loss = variation_loss(comb_img)
-loss = (CONTENT_WEIGHT * c_loss) + (STYLE_WEIGHT * s_loss) + (VAR_WEIGHT * v_loss)
+loss = (CONTENT_WEIGHT * c_loss) + (STYLE_WEIGHT * s_loss) + \
+       (VAR_WEIGHT * v_loss)
 
 grads = K.gradients(loss, comb_img)[0]
 f = K.function([comb_img], [loss, grads])
 
 NUM_ITERATIONS = 5
-LEARNING_RATE = 0.001
+LEARNING_RATE = 0.00092
 
 content_img4d = preprocess(content_img_value)
 for i in range(NUM_ITERATIONS):
     print("Epoch {:d}/{:d}".format(i+1, NUM_ITERATIONS))
     loss_value, grads_value = f([content_img4d])
-    content_img4d += grads_value * LEARNING_RATE 
+    content_img4d += grads_value * LEARNING_RATE
     plt.imshow(deprocess(content_img4d))
     plt.show()

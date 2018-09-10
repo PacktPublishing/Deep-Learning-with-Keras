@@ -11,9 +11,10 @@ import nltk
 import os
 import re
 
+
 class ReutersParser(html_parser.HTMLParser):
-    """ Utility class to parse a SGML file and yield documents one at 
-        a time. 
+    """ Utility class to parse a SGML file and yield documents one at
+        a time.
     """
     def __init__(self, encoding='latin-1'):
         html_parser.HTMLParser.__init__(self)
@@ -121,8 +122,8 @@ def maybe_build_vocab(reuters_dir, vocab_file):
         num_docs_read = 0
         for doc in stream_reuters_documents(reuters_dir):
             if num_docs_read % 100 == 0:
-                print("building vocab from {:d} docs"
-                    .format(num_docs_read))
+                print("building vocab from {:d} "
+                      "docs".format(num_docs_read))
             topics = doc["topics"]
             if len(topics) == 0:
                 continue
@@ -135,9 +136,9 @@ def maybe_build_vocab(reuters_dir, vocab_file):
             for i, c in enumerate(counter.most_common(VOCAB_SIZE)):
                 vocab[c[0]] = i + 1
             num_docs_read += 1
-        print("vocab built from {:d} docs, complete"
-            .format(num_docs_read))
-        fvoc = open(vocab_file, "wb")
+        print("vocab built from {:d} "
+              "docs, complete".format(num_docs_read))
+        fvoc = open(vocab_file, "w")
         for k in vocab.keys():
             fvoc.write("{:s}\t{:d}\n".format(k, vocab[k]))
         fvoc.close()
@@ -152,17 +153,17 @@ def build_numeric_text(vocab, text):
     return ",".join([str(x) for x in wids])
 
 
-##################### main ######################
+# #################### main ######################
 
-DATA_DIR = "../data"
+DATA_DIR = "data"
 REUTERS_DIR = os.path.join(DATA_DIR, "reuters-21578")
 VOCAB_FILE = os.path.join(DATA_DIR, "vocab.txt")
 VOCAB_SIZE = 5000
 
 vocab = maybe_build_vocab(REUTERS_DIR, VOCAB_FILE)
 
-ftext = open(os.path.join(DATA_DIR, "text.tsv"), "wb")
-ftags = open(os.path.join(DATA_DIR, "tags.tsv"), "wb")
+ftext = open(os.path.join(DATA_DIR, "text.tsv"), "w")
+ftags = open(os.path.join(DATA_DIR, "tags.tsv"), "w")
 num_read = 0
 for doc in stream_reuters_documents(REUTERS_DIR):
     # periodic heartbeat report
@@ -181,7 +182,7 @@ for doc in stream_reuters_documents(REUTERS_DIR):
     title_body = title_body.encode("utf8").decode("ascii", "ignore")
     ftext.write("{:d}\t{:s}\n".format(num_read, title_body))
     ftags.write("{:d}\t{:s}\n".format(num_read, ",".join(topics)))
-    
+
 print("features built from {:d} docs, complete".format(num_read))
 ftext.close()
 ftags.close()

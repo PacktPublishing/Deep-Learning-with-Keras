@@ -3,9 +3,10 @@ from __future__ import division, print_function
 from keras import backend as K
 from keras.applications import vgg16
 from keras.layers import Input
-import matplotlib.pyplot as plt
 import numpy as np
 import os
+import matplotlib.pyplot as plt
+
 
 def preprocess(img):
     img4d = img.copy()
@@ -16,6 +17,7 @@ def preprocess(img):
     img4d = np.expand_dims(img4d, axis=0)
     img4d = vgg16.preprocess_input(img4d)
     return img4d
+
 
 def deprocess(img4d):
     img = img4d.copy()
@@ -36,9 +38,9 @@ def deprocess(img4d):
     return img
 
 
-########################### main ###########################
+# ########################## main ###########################
 
-DATA_DIR = "../data"
+DATA_DIR = "data"
 
 IMAGE_FILE = os.path.join(DATA_DIR, "cat.jpg")
 
@@ -46,6 +48,8 @@ img = plt.imread(IMAGE_FILE)
 plt.imshow(img)
 img_copy = img.copy()
 print("Original image shape:", img.shape)
+image_shape_widh = img.shape[0]
+image_shape_height = img.shape[1]
 p_img = preprocess(img_copy)
 print("After preprocess:", p_img.shape)
 d_img = deprocess(p_img)
@@ -59,8 +63,9 @@ dream = Input(batch_shape=batch_shape)
 model = vgg16.VGG16(input_tensor=dream, weights="imagenet", include_top=False)
 
 # create layer name to layer dictionary
-layer_dict = {layer.name : layer for layer in model.layers}
-#layer_dict
+layer_dict = {layer.name: layer for layer in model.layers}
+print(layer_dict)
+# layer_dict
 
 # visualize gradients at pooling layers
 num_pool_layers = 5
@@ -88,7 +93,7 @@ print(first_layer.name, first_layer.output_shape)
 
 num_pool_layers = 5
 num_iters_per_layer = 3
-step = 100
+step = 2000
 
 for i in range(num_pool_layers):
     layer_name = "block{:d}_pool".format(i+1)
@@ -105,19 +110,24 @@ for i in range(num_pool_layers):
     fig, axes = plt.subplots(1, num_iters_per_layer, figsize=(20, 10))
     for it in range(num_iters_per_layer):
         loss_value, grads_value = f([img_value])
-        img_value += grads_value * step 
+        img_value += grads_value * step
         axes[it].imshow(deprocess(img_value))
     plt.show()
 
 # try to dream structure out of random noise
-img_noise = np.random.randint(100, 150, size=(227, 227, 3), dtype=np.uint8)
+img_noise = np.random.randint(100, 150,
+                              size=(image_shape_widh, image_shape_height, 3),
+                              dtype=np.uint8)
 print(img_noise.shape)
 plt.imshow(img_noise)
 plt.show()
 
+p_img = img_noise.copy()
+p_img = preprocess(p_img)
+
 num_pool_layers = 5
 num_iters_per_layer = 3
-step = 100
+step = 2000
 
 for i in range(num_pool_layers):
     layer_name = "block{:d}_pool".format(i+1)
@@ -135,22 +145,22 @@ for i in range(num_pool_layers):
     fig, axes = plt.subplots(1, num_iters_per_layer, figsize=(20, 10))
     for it in range(num_iters_per_layer):
         loss_value, grads_value = f([img_value])
-        img_value += grads_value * step 
+        img_value += grads_value * step
         axes[it].imshow(deprocess(img_value))
     plt.show()
-    
+
 # random noise with specific objective. Only do gradient ascent on
 # specific label and see that this pattern shows up
 num_pool_layers = 5
 num_iters_per_layer = 3
-step = 100
+step = 2000
 
 for i in range(num_pool_layers):
     layer_name = "block{:d}_pool".format(i+1)
     print("Pooling Layer: {:s}".format(layer_name))
     layer_output = layer_dict[layer_name].output
     # loss function
-    loss = layer_output[:,:,:,24]
+    loss = layer_output[:, :, :, 24]
     # gradient
     grads = K.gradients(loss, dream)[0]
     grads /= (K.sqrt(K.mean(K.square(grads))) + 1e-5)
@@ -160,8 +170,6 @@ for i in range(num_pool_layers):
     fig, axes = plt.subplots(1, num_iters_per_layer, figsize=(20, 10))
     for it in range(num_iters_per_layer):
         loss_value, grads_value = f([img_value])
-        img_value += grads_value * step 
+        img_value += grads_value * step
         axes[it].imshow(deprocess(img_value))
     plt.show()
-    
-    

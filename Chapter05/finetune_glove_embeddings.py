@@ -7,14 +7,17 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.utils import np_utils
 from sklearn.model_selection import train_test_split
 import collections
-import matplotlib.pyplot as plt
 import nltk
 import numpy as np
+from make_tensorboard import make_tensorboard
+import os
+import codecs
+
 
 np.random.seed(42)
 
-INPUT_FILE = "../data/umich-sentiment-train.txt"
-GLOVE_MODEL = "../data/glove.6B.300d.txt"
+INPUT_FILE = "data/umich-sentiment-train.txt"
+GLOVE_MODEL = "data/glove.6B.300d.txt"
 VOCAB_SIZE = 5000
 EMBED_SIZE = 300
 NUM_FILTERS = 256
@@ -23,7 +26,7 @@ BATCH_SIZE = 64
 NUM_EPOCHS = 10
 
 counter = collections.Counter()
-fin = open(INPUT_FILE, "rb")
+fin = codecs.open(INPUT_FILE, "r", encoding='utf-8')
 maxlen = 0
 for line in fin:
     _, sent = line.strip().split("\t")
@@ -41,7 +44,7 @@ vocab_sz = len(word2index) + 1
 index2word = {v:k for k, v in word2index.items()}
     
 xs, ys = [], []
-fin = open(INPUT_FILE, "rb")
+fin = codecs.open(INPUT_FILE, "r", encoding='utf-8')
 for line in fin:
     label, sent = line.strip().split("\t")
     ys.append(int(label))
@@ -76,7 +79,7 @@ model = Sequential()
 model.add(Embedding(vocab_sz, EMBED_SIZE, input_length=maxlen,
                     weights=[embedding_weights],
                     trainable=True))
-model.add(SpatialDropout1D(Dropout(0.2)))
+model.add(SpatialDropout1D(0.2))
 model.add(Conv1D(filters=NUM_FILTERS, kernel_size=NUM_WORDS,
                  activation="relu"))
 model.add(GlobalMaxPooling1D())
@@ -85,26 +88,13 @@ model.add(Dense(2, activation="softmax"))
 model.compile(optimizer="adam", loss="categorical_crossentropy",
               metrics=["accuracy"])
 
+callbacks, log_dir = make_tensorboard(set_dir_name='keras_finetune_glove_embeddings')
+
 history = model.fit(Xtrain, Ytrain, batch_size=BATCH_SIZE,
                     epochs=NUM_EPOCHS,
-                    validation_data=(Xtest, Ytest))              
+                    callbacks=[callbacks],
+                    validation_data=(Xtest, Ytest))
 
-
-# plot loss function
-plt.subplot(211)
-plt.title("accuracy")
-plt.plot(history.history["acc"], color="r", label="train")
-plt.plot(history.history["val_acc"], color="b", label="validation")
-plt.legend(loc="best")
-
-plt.subplot(212)
-plt.title("loss")
-plt.plot(history.history["loss"], color="r", label="train")
-plt.plot(history.history["val_loss"], color="b", label="validation")
-plt.legend(loc="best")
-
-plt.tight_layout()
-plt.show()
 
 # evaluate model
 score = model.evaluate(Xtest, Ytest, verbose=1)

@@ -12,8 +12,9 @@ import collections
 import itertools
 import nltk
 import numpy as np
-import matplotlib.pyplot as plt
 import os
+from make_tensorboard import make_tensorboard
+
 
 def get_data(infile):
     stories, questions, answers = [], [], []
@@ -33,6 +34,7 @@ def get_data(infile):
     fin.close()
     return stories, questions, answers
 
+
 def build_vocab(train_data, test_data):
     counter = collections.Counter()
     for stories, questions, answers in [train_data, test_data]:
@@ -47,10 +49,11 @@ def build_vocab(train_data, test_data):
             for word in nltk.word_tokenize(answer):
                 counter[word.lower()] += 1
     # no OOV here because there are not too many words in dataset
-    word2idx = {w:(i+1) for i, (w, _) in enumerate(counter.most_common())}
+    word2idx = {w: (i+1) for i, (w, _) in enumerate(counter.most_common())}
     word2idx["PAD"] = 0
-    idx2word = {v:k for k, v in word2idx.items()}
+    idx2word = {v: k for k, v in word2idx.items()}
     return word2idx, idx2word
+
 
 def get_maxlens(train_data, test_data):
     story_maxlen, question_maxlen = 0, 0
@@ -68,23 +71,26 @@ def get_maxlens(train_data, test_data):
                 question_maxlen = question_len
     return story_maxlen, question_maxlen
 
+
 def vectorize(data, word2idx, story_maxlen, question_maxlen):
     Xs, Xq, Y = [], [], []
     stories, questions, answers = data
     for story, question, answer in zip(stories, questions, answers):
-        xs = [[word2idx[w.lower()] for w in nltk.word_tokenize(s)] 
-                                   for s in story]
+        xs = [[word2idx[w.lower()] for w in nltk.word_tokenize(s)]
+              for s in story]
         xs = list(itertools.chain.from_iterable(xs))
         xq = [word2idx[w.lower()] for w in nltk.word_tokenize(question)]
         Xs.append(xs)
         Xq.append(xq)
         Y.append(word2idx[answer.lower()])
-    return pad_sequences(Xs, maxlen=story_maxlen),\
-           pad_sequences(Xq, maxlen=question_maxlen),\
-           np_utils.to_categorical(Y, num_classes=len(word2idx))
+        pad_sequences_Xs = pad_sequences(Xs, maxlen=story_maxlen)
+        pad_sequences_Xq = pad_sequences(Xq, maxlen=question_maxlen)
+        categorical_Y = np_utils.to_categorical(Y, num_classes=len(word2idx))
+
+    return pad_sequences_Xs, pad_sequences_Xq, categorical_Y
 
 
-DATA_DIR = "../data"
+DATA_DIR = "data/tasks_1-20_v1-2/en"
 
 TRAIN_FILE = os.path.join(DATA_DIR, "qa1_single-supporting-fact_train.txt")
 TEST_FILE = os.path.join(DATA_DIR, "qa1_single-supporting-fact_test.txt")
@@ -103,19 +109,23 @@ print("vocab size: {:d}".format(len(word2idx)))
 
 # compute max sequence length for each entity
 story_maxlen, question_maxlen = get_maxlens(data_train, data_test)
-print("story maxlen: {:d}, question maxlen: {:d}".format(story_maxlen, question_maxlen))
+print("story maxlen: {:d}, "
+      "question maxlen: {:d}".format(story_maxlen, question_maxlen))
 
 # vectorize the data
-Xstrain, Xqtrain, Ytrain = vectorize(data_train, word2idx, story_maxlen, question_maxlen)
-Xstest, Xqtest, Ytest = vectorize(data_test, word2idx, story_maxlen, question_maxlen)
+Xstrain, Xqtrain, Ytrain = \
+    vectorize(data_train, word2idx, story_maxlen, question_maxlen)
+Xstest, Xqtest, Ytest = \
+    vectorize(data_test, word2idx, story_maxlen, question_maxlen)
 
-print(Xstrain.shape, Xqtrain.shape, Ytrain.shape, Xstest.shape, Xqtest.shape, Ytest.shape)
+print(Xstrain.shape, Xqtrain.shape, Ytrain.shape,
+      Xstest.shape, Xqtest.shape, Ytest.shape)
 
 # define network
 EMBEDDING_SIZE = 64
 LATENT_SIZE = 32
-BATCH_SIZE = 64
-NUM_EPOCHS = 10
+BATCH_SIZE = 32
+NUM_EPOCHS = 400
 
 # inputs
 story_input = Input(shape=(story_maxlen,))
@@ -123,14 +133,14 @@ question_input = Input(shape=(question_maxlen,))
 
 # story encoder memory
 story_encoder = Embedding(input_dim=vocab_size,
-                         output_dim=EMBEDDING_SIZE,
-                         input_length=story_maxlen)(story_input)
+                          output_dim=EMBEDDING_SIZE,
+                          input_length=story_maxlen)(story_input)
 story_encoder = Dropout(0.3)(story_encoder)
 
 # question encoder
 question_encoder = Embedding(input_dim=vocab_size,
-                            output_dim=EMBEDDING_SIZE,
-                            input_length=question_maxlen)(question_input)
+                             output_dim=EMBEDDING_SIZE,
+                             input_length=question_maxlen)(question_input)
 question_encoder = Dropout(0.3)(question_encoder)
 
 # match between story and question
@@ -138,8 +148,8 @@ match = dot([story_encoder, question_encoder], axes=[2, 2])
 
 # encode story into vector space of question
 story_encoder_c = Embedding(input_dim=vocab_size,
-                           output_dim=question_maxlen,
-                           input_length=story_maxlen)(story_input)
+                            output_dim=question_maxlen,
+                            input_length=story_maxlen)(story_input)
 story_encoder_c = Dropout(0.3)(story_encoder_c)
 
 # combine match and story vectors
@@ -157,26 +167,13 @@ model = Model(inputs=[story_input, question_input], outputs=output)
 model.compile(optimizer="rmsprop", loss="categorical_crossentropy",
               metrics=["accuracy"])
 
+tensorboard = make_tensorboard(set_dir_name='mem-network')
+
 # train model
-history = model.fit([Xstrain, Xqtrain], [Ytrain], batch_size=BATCH_SIZE, 
+history = model.fit([Xstrain, Xqtrain], [Ytrain], batch_size=BATCH_SIZE,
                     epochs=NUM_EPOCHS,
+                    callbacks=[tensorboard],
                     validation_data=([Xstest, Xqtest], [Ytest]))
-                    
-# plot accuracy and loss plot
-plt.subplot(211)
-plt.title("Accuracy")
-plt.plot(history.history["acc"], color="g", label="train")
-plt.plot(history.history["val_acc"], color="b", label="validation")
-plt.legend(loc="best")
-
-plt.subplot(212)
-plt.title("Loss")
-plt.plot(history.history["loss"], color="g", label="train")
-plt.plot(history.history["val_loss"], color="b", label="validation")
-plt.legend(loc="best")
-
-plt.tight_layout()
-plt.show()
 
 # labels
 ytest = np.argmax(Ytest, axis=1)
