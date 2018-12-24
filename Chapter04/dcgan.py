@@ -162,6 +162,9 @@ def get_args():
     return args
 
 if __name__ == "__main__":
+    from keras import backend as K
+    K.set_image_data_format('channels_first')
+    
     args = get_args()
     if args.mode == "train":
         train(BATCH_SIZE=args.batch_size)
