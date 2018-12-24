@@ -1,4 +1,4 @@
-from keras.layers.core import Dense, Dropout, SpatialDropout1D
+from keras.layers.core import Dense, SpatialDropout1D
 from keras.layers.convolutional import Conv1D
 from keras.layers.embeddings import Embedding
 from keras.layers.pooling import GlobalMaxPooling1D
@@ -53,10 +53,11 @@ fin.close()
 word2index = collections.defaultdict(int)
 for wid, word in enumerate(counter.most_common(VOCAB_SIZE)):
     word2index[word[0]] = wid + 1
-# Adding one because UNK. It means representing words that are not seen in the vocubulary
+# Adding one because UNK.
+# It means representing words that are not seen in the vocubulary
 vocab_sz = len(word2index) + 1
-index2word = {v:k for k, v in word2index.items()}
-    
+index2word = {v: k for k, v in word2index.items()}
+
 xs, ys = [], []
 fin = codecs.open(INPUT_FILE, "r", encoding='utf-8')
 for line in fin:
@@ -69,28 +70,32 @@ fin.close()
 X = pad_sequences(xs, maxlen=maxlen)
 Y = np_utils.to_categorical(ys)
 
-Xtrain, Xtest, Ytrain, Ytest = train_test_split(X, Y, test_size=0.3, 
-                                                random_state=42)
+Xtrain, Xtest, Ytrain, Ytest = \
+    train_test_split(X, Y, test_size=0.3, random_state=42)
 print(Xtrain.shape, Xtest.shape, Ytrain.shape, Ytest.shape)
 
 model = Sequential()
 model.add(Embedding(vocab_sz, EMBED_SIZE, input_length=maxlen))
 model.add(SpatialDropout1D(0.2))
-model.add(Conv1D(filters=NUM_FILTERS, kernel_size=NUM_WORDS, activation="relu"))
+model.add(Conv1D(filters=NUM_FILTERS,
+                 kernel_size=NUM_WORDS,
+                 activation="relu"))
 model.add(GlobalMaxPooling1D())
 model.add(Dense(2, activation="softmax"))
 
 model.compile(optimizer="adam", loss="categorical_crossentropy",
               metrics=["accuracy"])
 
-callbacks, log_dir = make_tensorboard(set_dir_name='keras_learn_embedding_from_scratch',
-                              embeddings_metadata='embedding/metadata.tsv'
-                              )
+tensorboard, log_dir = make_tensorboard(
+    set_dir_name='keras_learn_embedding_from_scratch',
+    embeddings_freq=1,
+    embeddings_metadata='embedding/metadata.tsv'
+    )
 
 history = model.fit(Xtrain, Ytrain, batch_size=BATCH_SIZE,
                     epochs=NUM_EPOCHS,
-                    callbacks=[callbacks],
-                    validation_data=(Xtest, Ytest))              
+                    callbacks=[tensorboard],
+                    validation_data=(Xtest, Ytest))
 
 # evaluate model
 score = model.evaluate(Xtest, Ytest, verbose=1)
